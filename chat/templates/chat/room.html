@@ -15,9 +15,26 @@
 
 <body>
 
-    <div id="user-hello"></div>
+    <div class="container">
+        <div class="row d-flex justify-content-center">
+            <div class="col-6">
+                <form>
+                    <div class="form-group">
+                        <label for="exampleFormControlTextarea1" class="h4 pt-5">Chatroom</label>
+                        <textarea class="form-control" id="chat-text" rows="10"></textarea><br>
+                    </div>
+                    <div class="form-group">
+                        <input class="form-control" id="input" type="text"></br>
+                    </div>
+                    <input class="btn btn-secondary btn-lg btn-block" id="submit" type="button" value="Send">
+                </form>
+            </div>
+        </div>
+    </div>
 
+    {{ request.user.username|json_script:"user_username" }}
     {{room_name|json_script:"room-name"}}
+
     <script>
         const roomName = JSON.parse(document.getElementById('room-name').textContent) + '/';
         var wsStart = 'ws://';
@@ -31,12 +48,26 @@
             endpoint
         );
 
-        webSocket.onmessage = function(e){
-            const data = JSON.parse(e.data);
-            console.log(data);
+        const user_username = JSON.parse(document.getElementById('user_username').textContent);
+        document.querySelector('#submit').onclick = function(e){
+            const messageInDom = document.querySelector('#input');
+            const message = messageInDom.value;
 
-            document.querySelector('#user-hello').innerHTML = (data.tester);
-        };
+            webSocket.send(
+                JSON.stringify({
+                    'message':message,
+                    'username':user_username,
+                })
+            );
+            messageInDom.value = '';
+        }
+
+
+        webSocket.onmessage = function (e) {
+            const data = JSON.parse(e.data);
+            console.log(data)
+            document.querySelector('#chat-text').value += (data.username + ': ' + data.message + '\n')
+        }
 
     </script>
 
